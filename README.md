@@ -1,36 +1,161 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# PixlFlow
 
-## Getting Started
+PixlFlow is a modern, web‑based creative platform designed for image editing and visual experimentation. Built with **Next.js** and a contemporary frontend stack, PixlFlow focuses on performance, clean UI, and an intuitive user experience for creators.
 
-First, run the development server:
+---
+
+## 🚀 Features
+
+* Modern **Next.js (App Router)** architecture
+* Fast, responsive UI optimized for the web
+* Component‑driven design with reusable abstractions
+* Scalable project structure suitable for production systems
+* Clean separation of concerns (UI, logic, configuration)
+* Ready for deployment on **Vercel**
+
+> Note: PixlFlow is actively evolving. New image‑editing and creative tools will be added incrementally.
+
+---
+
+## 🛠️ Tech Stack
+
+* **Framework:** Next.js (App Router)
+* **Language:** JavaScript / TypeScript
+* **Styling:** CSS / Tailwind CSS
+* **Fonts:** `next/font` for optimized font loading
+* **Tooling:** npm, ESLint
+* **Deployment:** Vercel
+
+---
+
+## 📸 Screenshots & Demo
+
+> Screenshots and demo will be added soon.
+
+Suggested placeholders:
+
+* Landing Page UI
+* Editor / Canvas Interface
+* Responsive Mobile View
+
+```text
+/screenshots
+  ├── landing.png
+  ├── editor.png
+  └── mobile.png
+```
+
+---
+
+## 📦 Getting Started
+
+### Prerequisites
+
+* Node.js (v18 or later recommended)
+* npm / yarn / pnpm / bun
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/pratikk70/PixlFlow.git
+
+# Navigate to the project directory
+cd PixlFlow
+
+# Install dependencies
+npm install
+```
+
+### Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open **[http://localhost:3000](http://localhost:3000)** in your browser to view the app.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📂 Project Structure
 
-## Learn More
+```text
+PixlFlow/
+├── app/            # App Router pages and layouts
+├── components/     # Reusable UI components
+├── public/         # Static assets
+├── styles/         # Global styles
+├── package.json
+└── README.md
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🧩 Customization
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* Edit `app/page.js` to modify the landing page
+* Add new routes inside the `app/` directory
+* Extend UI using reusable components
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🌐 Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+PixlFlow is optimized for deployment on **Vercel**:
+
+```bash
+npm run build
+```
+
+Push the repository to GitHub and import it into Vercel for instant deployment.
+
+---
+
+## 🧭 Roadmap
+
+* Canvas‑based image editor
+* Layer and filter support
+* Export & download functionality
+* Authentication and user profiles
+* AI‑assisted visual enhancements
+
+---
+
+## 📄 Resume Highlights (SDE)
+
+This project demonstrates:
+
+* Practical experience with **Next.js App Router** and modern React patterns
+* Designing **scalable frontend architecture** for real‑world applications
+* Building **production‑ready UI components**
+* Experience with **deployment pipelines (Vercel)**
+* Strong understanding of **component reusability, state flow, and performance**
+* Ability to take a project from **idea → implementation → deployment**
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome.
+
+1. Fork the repository
+2. Create a new branch
+3. Commit your changes
+4. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.
+
+---
+
+## 👤 Author
+
+**Pratik**
+GitHub: [https://github.com/pratikk70](https://github.com/pratikk70)
+
+---
+
+> PixlFlow — where pixels move with purpose.
