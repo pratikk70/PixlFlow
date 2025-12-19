@@ -1,14 +1,15 @@
 import { useCanvas } from "@/context/context";
 import { api } from "@/convex/_generated/api";
 import { useConvexMutation } from "@/hooks/use-convex-query";
-import { Canvas, FabricImage } from "fabric";
+import { Canvas, FabricImage } from "fabric"; // Ensure you are using fabric v6+
 import React, { useEffect, useRef, useState } from "react";
 
 function CanvasEditor({ project }) {
-  const canvasRef = useRef();
-  const containerRef = useRef();
-  const { canvasEditor, setCanvasEditor, activeTool, onToolChange } =
-    useCanvas();
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const canvasInstanceRef = useRef(null); // Tracks the fabric instance internally
+
+  const { canvasEditor, setCanvasEditor, activeTool, onToolChange } = useCanvas();
   const [isLoading, setIsLoading] = useState(true);
 
   const { mutate: updateProject } = useConvexMutation(
@@ -25,13 +26,20 @@ function CanvasEditor({ project }) {
     return Math.min(scaleX, scaleY, 1);
   };
 
+  // --- INITIALIZATION EFFECT ---
   useEffect(() => {
-    if (!canvasRef.current || !project || canvasEditor) return;
+    // 1. Guard clauses
+    if (!canvasRef.current || !project) return;
+    if (canvasInstanceRef.current) return; // Prevent double-init in Strict Mode
+
+    let isMounted = true; // Track if component is still active
 
     const initializeCanvas = async () => {
       setIsLoading(true);
 
       const viewportScale = calculateViewportScale();
+      
+      // Initialize Fabric Canvas
       const canvas = new Canvas(canvasRef.current, {
         width: project.width,
         height: project.height,
@@ -47,7 +55,10 @@ function CanvasEditor({ project }) {
         skipTargetFind: false,
       });
 
-      // Sync both lower and upper canvas layers
+      // Store instance immediately
+      canvasInstanceRef.current = canvas;
+
+      // Sync dimensions
       canvas.setDimensions(
         {
           width: project.width * viewportScale,
@@ -58,7 +69,7 @@ function CanvasEditor({ project }) {
 
       canvas.setZoom(viewportScale);
 
-      // High DPI handling (optional, comment if you don’t need)
+      // High DPI handling
       const scaleFactor = window.devicePixelRatio || 1;
       if (scaleFactor > 1) {
         canvas.getElement().width = project.width * scaleFactor;
@@ -66,27 +77,31 @@ function CanvasEditor({ project }) {
         canvas.getContext().scale(scaleFactor, scaleFactor);
       }
 
-      // Load image
+      // --- ASYNC IMAGE LOADING ---
       if (project.currentImageUrl || project.originalImageUrl) {
         try {
           const imageUrl = project.currentImageUrl || project.originalImageUrl;
-          const fabricImage = await fabric.Image.fromURL(imageUrl, {
+          
+          const img = await FabricImage.fromURL(imageUrl, {
             crossOrigin: "anonymous",
           });
 
-          const imgAspectRatio = fabricImage.width / fabricImage.height;
+          // STOP execution if component unmounted during await
+          if (!isMounted || !canvas.getElement()) return;
+
+          const imgAspectRatio = img.width / img.height;
           const canvasAspectRatio = project.width / project.height;
           let scaleX, scaleY;
 
           if (imgAspectRatio > canvasAspectRatio) {
-            scaleX = project.width / fabricImage.width;
+            scaleX = project.width / img.width;
             scaleY = scaleX;
           } else {
-            scaleY = project.height / fabricImage.height;
+            scaleY = project.height / img.height;
             scaleX = scaleY;
           }
 
-          fabricImage.set({
+          img.set({
             left: project.width / 2,
             top: project.height / 2,
             originX: "center",
@@ -97,67 +112,71 @@ function CanvasEditor({ project }) {
             evented: true,
           });
 
-          canvas.add(fabricImage);
-          canvas.centerObject(fabricImage);
+          canvas.add(img);
+          canvas.centerObject(img);
         } catch (error) {
           console.error("Error loading project image:", error);
         }
       }
 
-      // Load saved canvas state
+      // --- ASYNC STATE LOADING ---
       if (project.canvasState) {
         try {
+          if (!isMounted || !canvas.getElement()) return;
           await canvas.loadFromJSON(project.canvasState);
-          canvas.requestRenderAll();
         } catch (error) {
           console.error("Error loading canvas state:", error);
         }
       }
 
-      canvas.calcOffset();
-      canvas.requestRenderAll();
-      setCanvasEditor(canvas);
+      // Finalize setup
+      if (isMounted && canvas.getElement()) {
+        canvas.calcOffset();
+        canvas.requestRenderAll();
+        setCanvasEditor(canvas);
 
-      setTimeout(() => {
-        // workaround for initial resize issues
-        window.dispatchEvent(new Event("resize"));
-      }, 500);
+        setTimeout(() => {
+          if (isMounted) window.dispatchEvent(new Event("resize"));
+        }, 500);
 
-      setIsLoading(false);
+        setIsLoading(false);
+      }
     };
 
     initializeCanvas();
 
+    // --- CLEANUP ---
     return () => {
-      if (canvasEditor) {
-        canvasEditor.dispose();
+      isMounted = false; // Mark as unmounted
+      if (canvasInstanceRef.current) {
+        // Dispose properly to free WebGL/Canvas resources
+        canvasInstanceRef.current.dispose();
+        canvasInstanceRef.current = null;
         setCanvasEditor(null);
       }
     };
-  }, [project]);
+  }, [project]); // Keep dependencies minimal
 
-  const saveCanvasState = async () => {
-    if (!canvasEditor || !project) return;
-
-    try {
-      const canvasJSON = canvasEditor.toJSON();
-      await updateProject({
-        projectId: project._id,
-        canvasState: canvasJSON,
-      });
-    } catch (error) {
-      console.error("Error saving canvas state:", error);
-    }
-  };
-
+  // --- AUTO SAVE EFFECT ---
   useEffect(() => {
+    // Only run if canvas is fully initialized
     if (!canvasEditor) return;
+
     let saveTimeout;
 
     const handleCanvasChange = () => {
       clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(() => {
-        saveCanvasState();
+      saveTimeout = setTimeout(async () => {
+        if (!project) return;
+        try {
+          const canvasJSON = canvasEditor.toJSON();
+          await updateProject({
+            projectId: project._id,
+            canvasState: canvasJSON,
+          });
+        } catch (error) {
+          console.error("Error saving canvas state:", error);
+        }
       }, 2000);
     };
 
@@ -171,8 +190,9 @@ function CanvasEditor({ project }) {
       canvasEditor.off("object:added", handleCanvasChange);
       canvasEditor.off("object:removed", handleCanvasChange);
     };
-  }, [canvasEditor]);
+  }, [canvasEditor, project, updateProject]);
 
+  // --- TOOL CHANGE EFFECT ---
   useEffect(() => {
     if (!canvasEditor) return;
 
@@ -185,8 +205,10 @@ function CanvasEditor({ project }) {
         canvasEditor.defaultCursor = "default";
         canvasEditor.hoverCursor = "move";
     }
+    canvasEditor.requestRenderAll();
   }, [canvasEditor, activeTool]);
 
+  // --- RESIZE EFFECT ---
   useEffect(() => {
     const handleResize = () => {
       if (!canvasEditor || !project) return;
@@ -208,7 +230,7 @@ function CanvasEditor({ project }) {
     return () => window.removeEventListener("resize", handleResize);
   }, [canvasEditor, project]);
 
-  // Handle automatic tab switching when text is selected
+  // --- SELECTION EFFECT ---
   useEffect(() => {
     if (!canvasEditor || !onToolChange) return;
 

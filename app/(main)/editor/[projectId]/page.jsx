@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import { useConvexQuery } from "@/hooks/use-convex-query";
+import { useConvexAuth } from "convex/react"; // Import Auth hook
 import { api } from "@/convex/_generated/api";
 import { Loader2, Monitor } from "lucide-react";
 import { EditorTopBar } from "./_components/editor-topbar";
@@ -14,30 +15,43 @@ import { RingLoader } from "react-spinners";
 export default function EditorPage() {
   const params = useParams();
   const projectId = params.projectId;
+  
+  // 1. Get Authentication State
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+
   const [canvasEditor, setCanvasEditor] = useState(null);
   const [processingMessage, setProcessingMessage] = useState(null);
-
-  // State for active tool
   const [activeTool, setActiveTool] = useState("resize");
 
-  // Get project data
+  // 2. Determine if we should fetch data
+  // Only run query if we have an ID AND the user is definitely logged in.
+  const shouldFetch = projectId && isAuthenticated && !authLoading;
+
   const {
     data: project,
-    isLoading,
+    isLoading: queryLoading,
     error,
-  } = useConvexQuery(api.projects.getProject, { projectId });
+  } = useConvexQuery(
+    api.projects.getProject, 
+    shouldFetch ? { projectId } : "skip" // Pass "skip" to pause the query
+  );
 
-  if (isLoading) {
+  // Combine loading states
+  const isLoading = authLoading || queryLoading;
+
+  // 3. Loading State UI
+  if (isLoading || (!project && !error && shouldFetch)) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
-          <p className="text-white/70">Loading...</p>
+          <p className="text-white/70">Loading project...</p>
         </div>
       </div>
     );
   }
 
+  // 4. Error State UI (Project not found or Access Denied)
   if (error || !project) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -54,6 +68,7 @@ export default function EditorPage() {
     );
   }
 
+  // 5. Main Editor UI
   return (
     <CanvasContext.Provider
       value={{

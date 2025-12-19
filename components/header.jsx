@@ -25,15 +25,13 @@ export default function Header() {
 
       <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-full px-8 py-3 flex items-center justify-between gap-8">
         {/* Logo */}
-        <Link href="/" className="mr-10 md:mr-20">
-          <Image
-            src="/logo-text.png"
-            alt="Pixxel Logo"
-            className="min-w-24 object-cover"
-            width={96}
-            height={24}
-          />
+        <Link href="/" className="mr-10 md:mr-20 select-none">
+        <span className="text-2xl md:text-3xl font-semibold tracking-wide bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent cursor-pointer">
+          PixlFlow
+        </span>
         </Link>
+
+
 
         {path === "/" && (
           <div className="hidden md:flex space-x-6">
