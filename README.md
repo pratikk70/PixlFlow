@@ -1,5 +1,7 @@
 # PixlFlow
 
+[![Live on Vercel](https://img.shields.io/badge/Live-Vercel-black?logo=vercel)](https://pixl-flow-gg5j.vercel.app/)
+
 PixlFlow is a modern, web‑based creative platform designed for image editing and visual experimentation. Built with **Next.js** and a contemporary frontend stack, PixlFlow focuses on performance, clean UI, and an intuitive user experience for creators.
 
 ---
